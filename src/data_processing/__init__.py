@@ -88,7 +88,8 @@ def histogram_equalization(gray: np.ndarray) -> np.ndarray:
 
     return equalized
 
-# Hàm thay đổi kích thước ảnh xám về 48x48
+# Hàm thay đổi kích thước ảnh xám về 
+
 
 def resize_image(gray: np.ndarray, new_size: int = 48) -> np.ndarray:
     h, w = gray.shape
