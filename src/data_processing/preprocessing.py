@@ -32,23 +32,6 @@ def rgb_to_gray(img_bgr: np.ndarray) -> np.ndarray:
     return gray
 
 
-def mean_filter(gray: np.ndarray, ksize: int = 7) -> np.ndarray:
-    """
-    Lọc trung bình trên ảnh xám.
-    
-    Args:
-        gray: Ảnh xám đầu vào
-        ksize: Kích thước kernel
-        
-    Returns:
-        Ảnh sau khi lọc trung bình
-    """
-    kernel = np.ones((ksize, ksize), dtype=np.float64) / (ksize * ksize)
-    filtered = convolve2d(gray, kernel, mode='same', boundary='symm')
-    filtered = np.clip(filtered, 0, 255).astype(np.uint8)
-    return filtered
-
-
 def gaussian_kernel(size: int = 5, sigma: float = 1.0) -> np.ndarray:
     """
     Tạo kernel Gaussian.
@@ -85,20 +68,6 @@ def gaussian_filter(gray: np.ndarray, size: int = 5, sigma: float = 1.0) -> np.n
     filtered = convolve2d(gray, k, mode='same', boundary='symm')
     filtered = np.clip(filtered, 0, 255).astype(np.uint8)
     return filtered
-
-
-def median_filter(gray: np.ndarray, ksize: int = 5) -> np.ndarray:
-    """
-    Lọc trung vị trên ảnh xám.
-    
-    Args:
-        gray: Ảnh xám đầu vào
-        ksize: Kích thước kernel
-        
-    Returns:
-        Ảnh sau khi lọc trung vị
-    """
-    return cv2.medianBlur(gray, ksize)
 
 
 def histogram_equalization(gray: np.ndarray) -> np.ndarray:
