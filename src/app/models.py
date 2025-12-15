@@ -1,5 +1,6 @@
 import numpy as np
 import cv2
+from .engagement_config import ENGAGEMENT_STATES
 
 
 class CNNModelWrapper:
@@ -7,7 +8,7 @@ class CNNModelWrapper:
     def __init__(self, model_path=None):
         self.model = None
         self.model_path = model_path
-        self.class_names = ['bored', 'confused', 'drowsy', 'engaged', 'frustrated', 'looking away']
+        self.class_names = sorted(ENGAGEMENT_STATES.keys())
         if model_path:
             self.load_model(model_path)
     

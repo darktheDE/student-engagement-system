@@ -44,7 +44,7 @@ class StudentEngagementApp(QMainWindow):
         self.cnn_model = None
         self.engaged_count = 0
         self.not_engaged_count = 0
-        self.state_counts = {'engaged': 0, 'confused': 0, 'frustrated': 0, 'bored': 0, 'drowsy': 0, 'looking away': 0}
+        self.state_counts = {state: 0 for state in ENGAGEMENT_STATES}
         self.current_state = None
         self.current_confidence = 0.0
         self.engagement_timeline = []
