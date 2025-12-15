@@ -52,6 +52,65 @@ def median_filter(gray: np.ndarray, ksize: int = 5) -> np.ndarray:
    
     return cv2.medianBlur(gray, ksize)
 
+# Hàm cân bằng histogram trên ảnh xám
+
+def histogram_equalization(gray: np.ndarray) -> np.ndarray:
+    h, w = gray.shape
+    total_pixels = h * w
+
+    # 1. Tính histogram
+    hist = np.zeros(256, dtype=np.int32)
+    for y in range(h):
+        for x in range(w):
+            hist[gray[y, x]] += 1
+
+    # 2. Tính CDF
+    cdf = np.zeros(256, dtype=np.int32)
+    cdf[0] = hist[0]
+    for i in range(1, 256):
+        cdf[i] = cdf[i - 1] + hist[i]
+
+    # 3. Chuẩn hóa CDF
+    cdf_min = next((v for v in cdf if v > 0), 0)
+    lut = np.zeros(256, dtype=np.uint8)
+
+    for i in range(256):
+        lut[i] = np.clip(
+            round((cdf[i] - cdf_min) / (total_pixels - cdf_min) * 255),
+            0, 255
+        )
+
+    # 4. Ánh xạ ảnh
+    equalized = np.zeros_like(gray, dtype=np.uint8)
+    for y in range(h):
+        for x in range(w):
+            equalized[y, x] = lut[gray[y, x]]
+
+    return equalized
+
+# Hàm thay đổi kích thước ảnh xám về 48x48
+
+def resize_image(gray: np.ndarray, new_size: int = 48) -> np.ndarray:
+    h, w = gray.shape
+    resized = np.zeros((new_size, new_size), dtype=np.uint8)
+
+    scale_x = w / new_size
+    scale_y = h / new_size
+
+    for y in range(new_size):
+        for x in range(new_size):
+            src_x = int(x * scale_x)
+            src_y = int(y * scale_y)
+
+            if src_x >= w:
+                src_x = w - 1
+            if src_y >= h:
+                src_y = h - 1
+
+            resized[y, x] = gray[src_y, src_x]
+
+    return resized
+
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(__file__)))
 
@@ -59,10 +118,16 @@ SRC_ROOT = os.path.join(ROOT, "data", "raw", "Student-engagement-dataset")
 DST_ROOT = os.path.join(ROOT, "data", "processed", "Student-engagement-dataset-clean")
 
 def preprocess_for_dataset(img_bgr: np.ndarray) -> np.ndarray:
-  
     gray = rgb_to_gray(img_bgr)
+
     filtered = gaussian_filter(gray, size=5, sigma=1.0)
-    return filtered
+
+    equalized = histogram_equalization(filtered)
+
+    resized = resize_image(equalized, new_size=48)
+
+    return resized
+
 
 def clean_dataset():
     os.makedirs(DST_ROOT, exist_ok=True)
@@ -95,5 +160,4 @@ def clean_dataset():
 
 
 if __name__ == "__main__":
-    # demo_filters(r"...đường_dẫn_1_ảnh...")   # chạy demo cho báo cáo
-    clean_dataset()                             # xử lý full dataset
+    clean_dataset()                           
