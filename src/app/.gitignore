@@ -1,0 +1,15 @@
+# Ignore build artifacts from PyInstaller until project is ready
+build/
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.pyd
+*.pyc
+
+# Distribution / packaging
+dist/
+*.egg-info/
+
+# Virtual env
+venv/
