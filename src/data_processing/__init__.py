@@ -11,11 +11,13 @@ from .preprocessing import (
     gaussian_kernel,
     gaussian_filter,
     histogram_equalization,
-    resize_image
+    resize_image,
+    center_crop_roi
 )
 
 # Import các hàm xử lý dataset từ dataset_cleaner
 from .dataset_cleaner import (
+    preprocess_roi,
     preprocess_for_dataset,
     clean_dataset,
     ROOT,
@@ -31,7 +33,9 @@ __all__ = [
     'gaussian_filter',
     'histogram_equalization',
     'resize_image',
+    'center_crop_roi',
     # Dataset processing functions
+    'preprocess_roi',
     'preprocess_for_dataset',
     'clean_dataset',
     # Path constants

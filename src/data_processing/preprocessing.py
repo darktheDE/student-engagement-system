@@ -1,26 +1,12 @@
-"""
-Module chứa các hàm xử lý ảnh cơ bản:
-- Chuyển đổi màu (RGB to Gray)
-- Các bộ lọc (Mean, Gaussian, Median)
-- Cân bằng histogram
-- Thay đổi kích thước
-"""
+
 
 import cv2
 import numpy as np
 from scipy.signal import convolve2d
 
-
+# Chuyển ảnh BGR sang ảnh xám
 def rgb_to_gray(img_bgr: np.ndarray) -> np.ndarray:
-    """
-    Chuyển ảnh BGR sang ảnh xám.
     
-    Args:
-        img_bgr: Ảnh BGR đầu vào
-        
-    Returns:
-        Ảnh xám (grayscale)
-    """
     img_rgb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2RGB).astype(np.float64)
 
     R = img_rgb[:, :, 0]
@@ -31,18 +17,9 @@ def rgb_to_gray(img_bgr: np.ndarray) -> np.ndarray:
     gray = np.clip(gray, 0, 255).astype(np.uint8)
     return gray
 
-
+# Tạo kernel Gaussian
 def gaussian_kernel(size: int = 5, sigma: float = 1.0) -> np.ndarray:
-    """
-    Tạo kernel Gaussian.
-    
-    Args:
-        size: Kích thước kernel
-        sigma: Độ lệch chuẩn
-        
-    Returns:
-        Kernel Gaussian 2D
-    """
+  
     s = (size - 1) / 2
     ax = np.linspace(-s, s, size)
     g1d = np.exp(-(ax ** 2) / (2 * sigma ** 2))
@@ -51,35 +28,17 @@ def gaussian_kernel(size: int = 5, sigma: float = 1.0) -> np.ndarray:
     kernel = kernel / kernel.sum()
     return kernel
 
-
+# Lọc Gaussian trên ảnh xám
 def gaussian_filter(gray: np.ndarray, size: int = 5, sigma: float = 1.0) -> np.ndarray:
-    """
-    Lọc Gaussian trên ảnh xám.
-    
-    Args:
-        gray: Ảnh xám đầu vào
-        size: Kích thước kernel
-        sigma: Độ lệch chuẩn
-        
-    Returns:
-        Ảnh sau khi lọc Gaussian
-    """
+   
     k = gaussian_kernel(size, sigma)
     filtered = convolve2d(gray, k, mode='same', boundary='symm')
     filtered = np.clip(filtered, 0, 255).astype(np.uint8)
     return filtered
 
-
+# Cân bằng histogram trên ảnh xám
 def histogram_equalization(gray: np.ndarray) -> np.ndarray:
-    """
-    Cân bằng histogram trên ảnh xám.
     
-    Args:
-        gray: Ảnh xám đầu vào
-        
-    Returns:
-        Ảnh sau khi cân bằng histogram
-    """
     h, w = gray.shape
     total_pixels = h * w
 
@@ -113,18 +72,25 @@ def histogram_equalization(gray: np.ndarray) -> np.ndarray:
 
     return equalized
 
-
-def resize_image(gray: np.ndarray, new_size: int = 48) -> np.ndarray:
-    """
-    Thay đổi kích thước ảnh xám.
+# Cắt vùng trung tâm của ảnh (fallback khi không detect được mặt)
+def center_crop_roi(img_bgr: np.ndarray, crop_ratio: float = 0.7) -> np.ndarray:
+   
+    h, w = img_bgr.shape[:2]
     
-    Args:
-        gray: Ảnh xám đầu vào
-        new_size: Kích thước mới (ảnh vuông)
-        
-    Returns:
-        Ảnh sau khi resize
-    """
+    # Tính toạ độ crop (bias về trên)
+    top = int(h * 0.05)  # 5% từ trên
+    bottom = int(h * (0.05 + crop_ratio))  # 75% từ trên (5% + 70%)
+    left = int(w * (1 - crop_ratio) / 2)  # Center theo chiều ngang
+    right = int(w * (1 - (1 - crop_ratio) / 2))
+    
+    # Crop
+    roi = img_bgr[top:bottom, left:right]
+    
+    return roi
+
+# Thay đổi kích thước ảnh xám.
+def resize_image(gray: np.ndarray, new_size: int = 128) -> np.ndarray:
+   
     h, w = gray.shape
     resized = np.zeros((new_size, new_size), dtype=np.uint8)
 
