@@ -1,8 +1,3 @@
-"""
-Cấu hình mapping trạng thái engagement
-"""
-
-# Mapping trạng thái từ model -> UI
 ENGAGEMENT_STATES = {
     # Nhóm Engaged
     'engaged': {
@@ -47,7 +42,6 @@ ENGAGEMENT_STATES = {
 
 
 def get_state_info(state_key):
-    """Lấy thông tin của một trạng thái"""
     return ENGAGEMENT_STATES.get(state_key.lower(), {
         'group': 'Unknown',
         'color_bgr': (200, 200, 200),
@@ -57,7 +51,6 @@ def get_state_info(state_key):
 
 
 def get_group_color(group):
-    """Lấy màu cho nhóm Engaged/Not Engaged"""
     if group == 'Engaged':
         return (0, 255, 0), '#10b981'  # Xanh lá
     else:
@@ -65,10 +58,7 @@ def get_group_color(group):
 
 
 def calculate_engagement_score(state_counts):
-    """
-    Tính điểm hứng thú (1-10)
-    Công thức: Weighted average dựa trên tích cực của từng trạng thái
-    """
+
     weights = {
         'engaged': 10,
         'confused': 7,
