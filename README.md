@@ -19,6 +19,8 @@ Hệ thống bao gồm các bước:
 3.  **Feature Extraction**: Trích xuất đặc trưng bằng mô hình CNN.
 4.  **Classification**: Phân loại trạng thái (Tập trung / Không tập trung) bằng SVM.
 
+Link dữ liệu, tham khảo: https://www.kaggle.com/code/sheimsaad/notebook-student-eng/input
+
 ## 📂 Cấu trúc dự án
 
 ```
