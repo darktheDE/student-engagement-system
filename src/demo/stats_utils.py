@@ -1,6 +1,6 @@
 def calculate_state_breakdown(history_raw, label_map):
     if not history_raw:
-        return "No Data", "N/A"
+        return "No Data (N/A)"
     
     counts = {}
     total = len(history_raw)

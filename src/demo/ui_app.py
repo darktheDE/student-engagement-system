@@ -39,6 +39,7 @@ class EngagementDemoUI:
         
         # --- Variables ---
         self.running = True
+        self.system_ready = False
         self.cap = None
         self.frame_count = 0
         
@@ -73,6 +74,8 @@ class EngagementDemoUI:
         self.log("Initializing models...")
         # Run init in thread to not freeze UI
         threading.Thread(target=self._initialize_system, daemon=True).start()
+        # Start loop on main thread, waiting for system_ready
+        self._update_loop()
 
     def _build_header(self):
         header_frame = tk.Frame(self.root, bg="#2c3e50", pady=20)
@@ -87,7 +90,7 @@ class EngagementDemoUI:
                          font=("Arial", 16, "bold"), fg="#f1c40f", bg="#2c3e50")
         group.pack(pady=5)
         
-        members = "Huỳnh Ngọc Thạch - 23133072  |  Huỳnh Hữu Huy - 23133027  |  Đỗ Kiến Hưng - 23133030  |  Nguyễn Tân Thành - 23133068"
+        members = "Huỳnh Ngọc Thạch - 23133072  |  Huỳnh Hữu Huy - 23133027  |  Đỗ Kiến Hưng - 23133030  |  Nguyễn Tấn Thành - 23133068"
         mem_lbl = tk.Label(header_frame, text=members, 
                            font=("Arial", 12), fg="#ecf0f1", bg="#2c3e50")
         mem_lbl.pack()
@@ -191,14 +194,18 @@ class EngagementDemoUI:
                 return
 
             self.log("System Running...")
-            # Start Loop
-            self._update_loop()
+            self.system_ready = True
             
         except Exception as e:
             self.log(f"Error Init: {e}")
 
     def _update_loop(self):
         if not self.running:
+            return
+
+        if not self.system_ready:
+            # Wait for init to finish
+            self.root.after(100, self._update_loop)
             return
             
         ret, frame = self.cap.read()
