@@ -25,7 +25,7 @@ HOG_SVM_PATH = os.path.join(current_dir, 'models', 'hog_svm_model.pkl')
 
 WEBCAM_WIDTH = 640
 WEBCAM_HEIGHT = 480
-DISPLAY_WIDTH = 480 # Resize for UI layout
+DISPLAY_WIDTH = 480
 DISPLAY_HEIGHT = 360
 FRAME_SKIP = 5
 HISTORY_LEN = 100
@@ -50,7 +50,7 @@ class EngagementDemoUI:
         
         # Data
         self.current_faces = []
-        self.predictions_cnn = [] # List of predictions
+        self.predictions_cnn = []
         self.predictions_hog = [] 
         
         # Metrics History
@@ -79,7 +79,7 @@ class EngagementDemoUI:
         header_frame.pack(fill=tk.X)
         
         title = tk.Label(header_frame, 
-                         text="PHÂN LOẠI MỨC ĐỘ HỨNG THÚ HỌC TẬP CỦA SINH VIÊN\nTRONG LỚP HỌC BẰNG PHÂN TÍCH KHUÔN MẶT",
+                         text="PHÂN LOẠI MỨC ĐỘ HỨNG THÚ HỌC TẬP CỦA SINH VIÊN\n BẰNG PHÂN TÍCH KHUÔN MẶT",
                          font=("Arial", 20, "bold"), fg="white", bg="#2c3e50", justify=tk.CENTER)
         title.pack()
         
@@ -139,11 +139,9 @@ class EngagementDemoUI:
         lbl_title = tk.Label(frame, text=title, font=("Arial", 14, "bold"), bg=color, fg="white", pady=5)
         lbl_title.pack(fill=tk.X)
         
-        # Canvas for video
         canvas = tk.Label(frame, bg="black", width=DISPLAY_WIDTH, height=DISPLAY_HEIGHT)
         canvas.pack(padx=5, pady=5)
         
-        # Store ref to canvas in the frame object for access later
         frame.canvas = canvas
         return frame
 
@@ -293,13 +291,12 @@ class EngagementDemoUI:
         photo = PIL.ImageTk.PhotoImage(image)
         
         canvas.configure(image=photo)
-        canvas.image = photo # Keep reference
+        canvas.image = photo
 
     def _update_metrics(self):
         self.lbl_fps.config(text=f"{self.fps_val}")
         self.lbl_faces.config(text=f"{len(self.current_faces)}")
         
-        # Eng Rate
         if len(self.history_cnn) > 0:
             rate_cnn = (sum(self.history_cnn) / len(self.history_cnn)) * 100
             self.lbl_eng_cnn.config(text=f"{rate_cnn:.1f}%", fg="#2ecc71" if rate_cnn > 50 else "#e74c3c")
