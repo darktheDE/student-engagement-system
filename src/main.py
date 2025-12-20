@@ -1,3 +1,5 @@
-import src.data_processing as dp
-dp.clean_dataset()
+from data_processing import clean_dataset
+
+if __name__ == "__main__":
+    clean_dataset()
 
