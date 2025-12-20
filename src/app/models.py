@@ -1,10 +1,13 @@
 import numpy as np
 import cv2
-from .engagement_config import ENGAGEMENT_STATES
+
+try:
+    from .engagement_config import ENGAGEMENT_STATES
+except ImportError:
+    from engagement_config import ENGAGEMENT_STATES
 
 
 class CNNModelWrapper:
-    """Wrapper for CNN model that classifies 6 engagement states"""
     def __init__(self, model_path=None):
         self.model = None
         self.model_path = model_path
@@ -23,7 +26,6 @@ class CNNModelWrapper:
             return False
     
     def preprocess(self, roi):
-        """Preprocess face ROI for CNN input"""
         if len(roi.shape) == 2:
             roi = cv2.cvtColor(roi, cv2.COLOR_GRAY2RGB)
         
@@ -35,10 +37,7 @@ class CNNModelWrapper:
         return roi
     
     def predict(self, roi):
-        """
-        Predict engagement state from face ROI
-        Returns: (state, confidence)
-        """
+
         if self.model is None:
             return None, 0.0
         

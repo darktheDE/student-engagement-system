@@ -40,7 +40,6 @@ class StudentEngagementApp(QMainWindow):
         self.total_faces_detected = 0
         self.frame_count = 0
         
-        # Model and state tracking
         self.cnn_model = None
         self.engaged_count = 0
         self.not_engaged_count = 0
@@ -91,7 +90,7 @@ class StudentEngagementApp(QMainWindow):
         
         self.video_label = QLabel("Đang khởi động camera...")
         self.video_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.video_label.setMinimumSize(640, 480)
+        self.video_label.setMinimumSize(480, 320)
         self.video_label.setObjectName("videoLabel")
         layout.addWidget(self.video_label, 1)
         
@@ -101,89 +100,86 @@ class StudentEngagementApp(QMainWindow):
         layout = QVBoxLayout()
         layout.setSpacing(5)
         layout.setContentsMargins(0, 0, 0, 0)
-        
-        # A. Kết Quả Phân Loại (Real-time)
-        result_group = QGroupBox("Kết Quả Phân Loại")
-        result_group.setObjectName("resultGroup")
-        result_layout = QVBoxLayout(result_group)
-        result_layout.setSpacing(6)
-        result_layout.setContentsMargins(8, 12, 8, 8)
-        
-        # Trạng thái tổng quát (TO, RÕ RÀNG)
-        self.overall_status_label = QLabel("ĐANG TẬP TRUNG")
-        self.overall_status_label.setObjectName("overallStatusLabel")
-        self.overall_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.overall_status_label.setMinimumHeight(50)
-        self.overall_status_label.setWordWrap(True)
-        result_layout.addWidget(self.overall_status_label)
-        
-        # Cảm xúc/Trạng thái chi tiết
-        self.detail_status_label = QLabel("Hứng thú")
-        self.detail_status_label.setObjectName("detailStatusLabel")
-        self.detail_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.detail_status_label.setMinimumHeight(35)
-        result_layout.addWidget(self.detail_status_label)
-        
-        # Thanh mức độ tin cậy (Confidence Bar)
-        confidence_container = QWidget()
-        confidence_layout = QVBoxLayout(confidence_container)
-        confidence_layout.setContentsMargins(0, 5, 0, 0)
-        confidence_layout.setSpacing(3)
-        
-        self.confidence_label = QLabel("Độ tin cậy: 0%")
-        self.confidence_label.setObjectName("confidenceLabel")
-        self.confidence_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        confidence_layout.addWidget(self.confidence_label)
-        
-        # Progress bar (dùng QTextEdit để hiển thị HTML progress bar)
-        self.confidence_bar = QTextEdit()
-        self.confidence_bar.setObjectName("confidenceBar")
-        self.confidence_bar.setReadOnly(True)
-        self.confidence_bar.setMaximumHeight(30)
-        self.confidence_bar.setMinimumHeight(30)
-        self.confidence_bar.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        self.confidence_bar.setHtml(self._generate_confidence_html(0))
-        confidence_layout.addWidget(self.confidence_bar)
-        
-        result_layout.addWidget(confidence_container)
-        layout.addWidget(result_group)
-        
-        # B. Thống Kê Chi Tiết (Statistics)
-        metrics_group = QGroupBox("Thống Kê Chi Tiết")
-        metrics_group.setObjectName("metricsGroup")
-        metrics_layout = QVBoxLayout(metrics_group)
-        metrics_layout.setContentsMargins(8, 12, 8, 8)
+
+        combined_group = QGroupBox("")
+        combined_group.setObjectName("combinedGroup")
+        combined_layout = QVBoxLayout(combined_group)
+        combined_layout.setContentsMargins(8, 8, 8, 8)
+        combined_layout.setSpacing(8)
+
+        metrics_container = QWidget()
+        metrics_layout = QVBoxLayout(metrics_container)
+        metrics_layout.setContentsMargins(0, 0, 0, 0)
+        metrics_layout.setSpacing(4)
+
         self.metrics_text = QTextEdit()
         self.metrics_text.setObjectName("metricsText")
         self.metrics_text.setReadOnly(True)
-        self.metrics_text.setMinimumHeight(120)
+        self.metrics_text.setMinimumHeight(60)
+        self.metrics_text.setMaximumHeight(240)
         metrics_layout.addWidget(self.metrics_text)
-        layout.addWidget(metrics_group, 1)
-        
-        # C. Thông Tin Phiên (Session Log / Timeline)
-        info_group = QGroupBox("Thông Tin Phiên")
-        info_group.setObjectName("infoGroup")
-        info_layout = QVBoxLayout(info_group)
-        info_layout.setContentsMargins(8, 12, 8, 8)
-        info_layout.setSpacing(5)
-        
-        # Timeline chart
+
+        combined_layout.addWidget(metrics_container, 3)
+
+        overall_container = QWidget()
+        overall_layout = QVBoxLayout(overall_container)
+        overall_layout.setContentsMargins(0, 0, 0, 0)
+        overall_layout.setSpacing(4)
+
+        self.overall_status_label = QLabel("ĐANG TẬP TRUNG")
+        self.overall_status_label.setObjectName("overallStatusLabel")
+        self.overall_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.overall_status_label.setMinimumHeight(28)
+        self.overall_status_label.setWordWrap(True)
+        overall_layout.addWidget(self.overall_status_label)
+
+        self.detail_status_label = QLabel("Hứng thú")
+        self.detail_status_label.setObjectName("detailStatusLabel")
+        self.detail_status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.detail_status_label.setMinimumHeight(20)
+        overall_layout.addWidget(self.detail_status_label)
+
+        self.confidence_label = QLabel("Độ tin cậy: 0%")
+        self.confidence_label.setObjectName("confidenceLabel")
+        self.confidence_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.confidence_label.setStyleSheet("QLabel#confidenceLabel { color: #e5e7eb; font-size: 13px; font-weight: 600; }")
+        overall_layout.addWidget(self.confidence_label)
+
+        self.confidence_bar = QTextEdit()
+        self.confidence_bar.setObjectName("confidenceBar")
+        self.confidence_bar.setReadOnly(True)
+        self.confidence_bar.setMaximumHeight(18)
+        self.confidence_bar.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
+        self.confidence_bar.setHtml(self._generate_confidence_html(0))
+        overall_layout.addWidget(self.confidence_bar)
+
+        combined_layout.addWidget(overall_container, 1)
+
+        chart_container = QWidget()
+        chart_layout = QVBoxLayout(chart_container)
+        chart_layout.setContentsMargins(0, 0, 0, 0)
+        chart_layout.setSpacing(4)
+
         self.timeline_chart = QTextEdit()
         self.timeline_chart.setObjectName("timelineChart")
         self.timeline_chart.setReadOnly(True)
-        self.timeline_chart.setMinimumHeight(120)
-        self.timeline_chart.setMaximumHeight(140)
+        self.timeline_chart.setMinimumHeight(260)
+        self.timeline_chart.setMaximumHeight(800)
+        self.timeline_chart.setContentsMargins(0, 0, 0, 0)
+        self.timeline_chart.setStyleSheet("QTextEdit#timelineChart { padding: 0px; background-color: transparent; }")
         self.timeline_chart.setVerticalScrollBarPolicy(Qt.ScrollBarPolicy.ScrollBarAlwaysOff)
-        info_layout.addWidget(self.timeline_chart)
-        
-        # Event log
+        chart_layout.addWidget(self.timeline_chart)
+
         self.info_text = QTextEdit()
         self.info_text.setObjectName("infoText")
         self.info_text.setReadOnly(True)
-        self.info_text.setMinimumHeight(60)
-        info_layout.addWidget(self.info_text, 1)
-        layout.addWidget(info_group, 1)
-        
+        self.info_text.hide()
+        chart_layout.addWidget(self.info_text)
+
+        combined_layout.addWidget(chart_container, 5)
+
+        layout.addWidget(combined_group)
+
         return layout
     
     def _generate_confidence_html(self, confidence):
@@ -192,7 +188,7 @@ class StudentEngagementApp(QMainWindow):
         return f"""
         <div style='padding: 0; margin: 0;'>
             <div style='width: 100%; height: 20px; background-color: #1a1f2e; border-radius: 10px; overflow: hidden; border: 2px solid #374151;'>
-                <div style='width: {pct}%; height: 100%; background: linear-gradient(90deg, {color} 0%, {color} 100%); transition: width 0.3s;'></div>
+                <div style='width: {pct}%; height: 100%; background: linear-gradient(90deg, {color}     0%, {color} 100%); transition: width 0.3s;'></div>
             </div>
         </div>
         """
@@ -246,16 +242,14 @@ class StudentEngagementApp(QMainWindow):
         faces = self.detector.detect_faces(frame)
         self.total_faces_detected += len(faces)
         
-        # Dự đoán engagement cho từng face (chỉ mỗi 3 frames để giảm lag)
         predictions = []
-        if self.frame_count % 3 == 0:  # Chỉ predict mỗi 3 frames
+        if self.frame_count % 3 == 0:
             for face_bbox in faces:
                 try:
                     roi = self.detector.extract_roi(frame, face_bbox, target_size=(256, 256))
                     state, confidence = self.predict_engagement(roi)
                     predictions.append({'state': state, 'confidence': confidence})
                     
-                    # Cập nhật state counts
                     if state:
                         self.state_counts[state] = self.state_counts.get(state, 0) + 1
                         state_info = get_state_info(state)
@@ -266,29 +260,24 @@ class StudentEngagementApp(QMainWindow):
                 except Exception as e:
                     predictions.append({'state': None, 'confidence': 0.0})
         else:
-            # Sử dụng prediction cũ nếu có
             if hasattr(self, 'last_predictions') and self.last_predictions:
                 predictions = self.last_predictions
             else:
                 predictions = [{'state': None, 'confidence': 0.0} for _ in faces]
         
-        # Lưu predictions để dùng cho frames tiếp theo
         if predictions and predictions[0]['state']:
             self.last_predictions = predictions
         
-        # Vẽ bounding boxes với predictions
         frame, rois_info = draw_face_boxes(frame, faces, self.detector, predictions)
         
         pixmap = cv_to_pixmap(frame, self.video_label.size())
         self.video_label.setPixmap(pixmap)
         
-        # Cập nhật trạng thái hiện tại (lấy trạng thái phổ biến nhất)
         if predictions and predictions[0]['state']:
             self.current_state = predictions[0]['state']
             self.current_confidence = predictions[0]['confidence']
             state_info = get_state_info(self.current_state)
             
-            # Trạng thái tổng quát (TO, RÕ RÀNG)
             if state_info['group'] == 'Engaged':
                 self.overall_status_label.setText("ĐANG TẬP TRUNG")
                 self.overall_status_label.setStyleSheet("""
@@ -314,7 +303,6 @@ class StudentEngagementApp(QMainWindow):
                     }
                 """)
             
-            # Cảm xúc/Trạng thái chi tiết
             self.detail_status_label.setText(state_info['display_name'])
             self.detail_status_label.setStyleSheet(f"""
                 QLabel#detailStatusLabel {{
@@ -327,7 +315,6 @@ class StudentEngagementApp(QMainWindow):
                 }}
             """)
             
-            # Thanh confidence
             self.confidence_label.setText(f"Độ tin cậy: {self.current_confidence:.0%}")
             self.confidence_bar.setHtml(self._generate_confidence_html(self.current_confidence))
             
@@ -342,17 +329,14 @@ class StudentEngagementApp(QMainWindow):
             self.confidence_label.setText("Độ tin cậy: 0%")
             self.confidence_bar.setHtml(self._generate_confidence_html(0))
         
-        # Log định kỳ và cập nhật timeline chart
         if self.frame_count % 300 == 0:  # Log mỗi 10s
             self.log_event(f"Xử lý {self.frame_count} frames, {self.total_faces_detected} faces")
         
-        # Cập nhật timeline mỗi 30 frames (1s)
         if self.frame_count % 30 == 0:
             score = calculate_engagement_score(self.state_counts)
             elapsed = (datetime.now() - self.start_time).total_seconds()
             self.engagement_timeline.append({'time': elapsed, 'score': score})
             
-            # Cập nhật timeline chart
             chart_html = generate_timeline_chart_html(self.engagement_timeline)
             self.timeline_chart.setHtml(chart_html)
         
