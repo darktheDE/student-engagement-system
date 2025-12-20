@@ -207,8 +207,15 @@ marimo/_lsp/
 __marimo__/
 
 # Project-specific
-# Data files - large datasets
-data/
+./.jpg
+./.png
+./.jpeg
+./.gif
+./.bmp
+./.tiff
+./.mp4
+./.avi
+./.mov
 
 # Keep the directory structure with .gitkeep files
 !data/raw/.gitkeep
@@ -273,4 +280,3 @@ figures/
 Thumbs.db
 desktop.ini
 .cursor/
-.github/
