@@ -1,13 +1,13 @@
 <div align="center">
 ---
 
-# PHÂN LOẠI MỨC ĐỘ HỨNG THÚ HỌC TẬP CỦA SINH VIÊN<br>TRONG LỚP HỌC BẰNG PHÂN TÍCH KHUÔN MẶT
+# PHÂN LOẠI MỨC ĐỘ HỨNG THÚ HỌC TẬP SINH VIÊN<br> BẰNG PHÂN TÍCH KHUÔN MẶT
 
 **Môn học:** XỬ LÝ ẢNH SỐ  
 **Mã LHP:** DIPR430685_04  
 **GVHD:** PGS.TS. Hoàng Văn Dũng
-- TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT THÀNH PHỐ HỒ CHÍ MINH
-- KHOA CÔNG NGHỆ THÔNG TIN
+TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT THÀNH PHỐ HỒ CHÍ MINH
+KHOA CÔNG NGHỆ THÔNG TIN
 ---
 
 ### NHÓM THỰC HIỆN: NHÓM 16
