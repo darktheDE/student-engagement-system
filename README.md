@@ -6,8 +6,8 @@
 **Môn học:** XỬ LÝ ẢNH SỐ  
 **Mã LHP:** DIPR430685_04  
 **GVHD:** PGS.TS. Hoàng Văn Dũng
-TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT THÀNH PHỐ HỒ CHÍ MINH
-KHOA CÔNG NGHỆ THÔNG TIN
+
+KHOA CÔNG NGHỆ THÔNG TIN - HCMUTE
 ---
 
 ### NHÓM THỰC HIỆN: NHÓM 16
