@@ -280,3 +280,5 @@ figures/
 Thumbs.db
 desktop.ini
 .cursor/
+.github/
+backups/

@@ -1,9 +1,4 @@
 <div align="center">
-
-# BỘ GIÁO DỤC VÀ ĐÀO TẠO
-## TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT THÀNH PHỐ HỒ CHÍ MINH
-### KHOA CÔNG NGHỆ THÔNG TIN
-
 ---
 
 # PHÂN LOẠI MỨC ĐỘ HỨNG THÚ HỌC TẬP CỦA SINH VIÊN<br>TRONG LỚP HỌC BẰNG PHÂN TÍCH KHUÔN MẶT
@@ -11,7 +6,8 @@
 **Môn học:** XỬ LÝ ẢNH SỐ  
 **Mã LHP:** DIPR430685_04  
 **GVHD:** PGS.TS. Hoàng Văn Dũng
-
+- TRƯỜNG ĐẠI HỌC SƯ PHẠM KỸ THUẬT THÀNH PHỐ HỒ CHÍ MINH
+- KHOA CÔNG NGHỆ THÔNG TIN
 ---
 
 ### NHÓM THỰC HIỆN: NHÓM 16
@@ -60,11 +56,10 @@ student-engagement-system/
 │   ├── raw/            # Dữ liệu thô (Input cho script xử lý)
 │   └── processed/      # Dữ liệu đã xử lý (Output sau khi chạy script)
 ├── docs/               # Tài liệu dự án (Hướng dẫn sử dụng, UI Guide)
-├── models/             # Chứa model đã train (CNN, HOG, SVM)
 ├── notebooks/          # Jupyter Notebooks (Training & Validating)
 ├── src/                # Mã nguồn chính
 │   ├── data_processing/ # Scripts làm sạch và xử lý dữ liệu
-│   ├── demo/           # Ứng dụng Demo UI (Tkinter)
+│   ├── demo/           # Ứng dụng Demo UI (Kiến trúc Modular)
 │   ├── face_detection/ # Module phát hiện khuôn mặt
 │   └── visualization/  # Các hàm hiển thị kết quả
 ├── requirements.txt    # Danh sách thư viện phụ thuộc
@@ -151,15 +146,39 @@ Dữ liệu đã qua xử lý sẽ được lưu tại: `data/processed/Student-
 Từ thư mục gốc của dự án, chạy lệnh sau:
 
 ```bash
-python src/demo/ui_app.py
+python src/demo/main.py
 ```
+
+### Các chế độ xem (View Modes)
+
+Ứng dụng hỗ trợ 3 chế độ xem:
+
+1. **Chế độ Đơn (Single Mode)**:
+   - Hiển thị 1 model tại một thời điểm
+   - Chọn model: CNN+SVM, CNN Thuần, hoặc HOG+SVM
+   - Hiển thị metrics chi tiết cho model được chọn
+
+2. **Chế độ So sánh (Comparison Mode)**:
+   - Hiển thị 2 models song song để so sánh
+   - So sánh hiệu suất và kết quả prediction
+   - Tính toán độ đồng thuận giữa 2 models
+
+3. **Chế độ Thống kê (Stats Mode)**:
+   - Hiển thị thống kê cho tất cả models
+   - Thời gian xử lý của từng model
+   - Tỷ lệ hứng thú tổng hợp
 
 ### Hướng dẫn sử dụng
 1.  Đảm bảo Webcam đã được kết nối.
 2.  Sau khi khởi chạy, giao diện sẽ hiển thị:
-    *   **Bên trái**: 2 màn hình video xử lý song song (CNN+SVM và HOG+SVM).
-    *   **Bên phải**: Bảng thống kê chi tiết (FPS, số lượng khuôn mặt, tỷ lệ hứng thú).
-3.  Nhấn nút `X` trên thanh tiêu đề để tắt ứng dụng.
+    *   **Bên trái**: Màn hình video với các mode selector và controls
+    *   **Bên phải**: Bảng thống kê chi tiết (FPS, khuôn mặt, ánh sáng, metrics)
+3.  Các tính năng:
+    *   ✅ Chuyển đổi giữa 3 chế độ xem
+    *   ✅ Điều chỉnh độ sáng camera
+    *   ✅ Xem ảnh đã tiền xử lý
+    *   ✅ Thống kê real-time
+4.  Nhấn nút `X` trên thanh tiêu đề để tắt ứng dụng.
 
 ---
 <div align="center">
