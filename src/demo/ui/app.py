@@ -290,7 +290,7 @@ class EngagementApp:
         """Create visualization without predictions"""
         if len(self.video_processor.current_faces) > 0:
             face_rect = self.video_processor.get_largest_face()
-            if face_rect:
+            if face_rect is not None:
                 img = draw_clean_rectangle(img, face_rect)
         return img
     

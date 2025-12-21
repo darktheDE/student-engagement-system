@@ -31,14 +31,38 @@ class SidebarComponent:
         self._build()
     
     def _build(self):
-        """Build sidebar UI"""
+        """Build sidebar UI with scrollbar"""
+        # Main frame
         self.frame = tk.Frame(self.parent, bg=COLOR_WHITE, width=320, relief=tk.RIDGE, bd=2)
         self.frame.pack(side=tk.RIGHT, fill=tk.Y)
         self.frame.pack_propagate(False)
         
+        # Create Canvas and Scrollbar for scrollable content
+        canvas = tk.Canvas(self.frame, bg=COLOR_WHITE, highlightthickness=0)
+        scrollbar = tk.Scrollbar(self.frame, orient="vertical", command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=COLOR_WHITE)
+        
+        scrollable_frame.bind(
+            "<Configure>",
+            lambda e: canvas.configure(scrollregion=canvas.bbox("all"))
+        )
+        
+        canvas.create_window((0, 0), window=scrollable_frame, anchor="nw")
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        # Pack canvas and scrollbar
+        canvas.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+        
+        # Enable mouse wheel scrolling
+        def _on_mousewheel(event):
+            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        
+        canvas.bind_all("<MouseWheel>", _on_mousewheel)
+        
         # Title
         tk.Label(
-            self.frame,
+            scrollable_frame,
             text="THỐNG KÊ",
             font=("Arial", 14, "bold"),
             bg=COLOR_WHITE,
@@ -47,7 +71,7 @@ class SidebarComponent:
         
         # Performance Section
         perf_frame = tk.LabelFrame(
-            self.frame,
+            scrollable_frame,
             text="Hiệu suất",
             font=("Arial", 10, "bold"),
             bg=COLOR_WHITE,
@@ -62,7 +86,7 @@ class SidebarComponent:
         
         # Detection Section
         detect_frame = tk.LabelFrame(
-            self.frame,
+            scrollable_frame,
             text="Phát hiện",
             font=("Arial", 10, "bold"),
             bg=COLOR_WHITE,
@@ -77,7 +101,7 @@ class SidebarComponent:
         
         # Brightness Control
         brightness_frame = tk.LabelFrame(
-            self.frame,
+            scrollable_frame,
             text="⚙️ Điều chỉnh độ sáng camera",
             font=("Arial", 9, "bold"),
             bg=COLOR_WHITE,
@@ -112,11 +136,11 @@ class SidebarComponent:
         ).pack()
         
         # Divider
-        tk.Frame(self.frame, height=2, bg=COLOR_DIVIDER).pack(fill=tk.X, padx=20, pady=12)
+        tk.Frame(scrollable_frame, height=2, bg=COLOR_DIVIDER).pack(fill=tk.X, padx=20, pady=12)
         
         # Metrics Container (dynamic content)
-        self.metrics_container = tk.Frame(self.frame, bg=COLOR_WHITE)
-        self.metrics_container.pack(fill=tk.BOTH, expand=True, padx=15)
+        self.metrics_container = tk.Frame(scrollable_frame, bg=COLOR_WHITE)
+        self.metrics_container.pack(fill=tk.BOTH, expand=True, padx=15, pady=(0, 20))
     
     def _create_inline_metric(self, parent, label_text, value_text):
         """
