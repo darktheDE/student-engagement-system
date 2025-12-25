@@ -87,11 +87,8 @@ COLOR_WHITE = "white"
 COLOR_BLACK = "black"
 
 # Face Detection Settings
-# Face Detection Settings
+FACE_DETECTION_SCALE_FACTOR = 1.3
 FACE_DETECTION_SCALE_FACTOR = 1.3
 FACE_DETECTION_MIN_NEIGHBORS = 4
 MIN_FACE_SIZE = 60         # Minimum face size (pixels) to even attempt processing
 SHARPEN_THRESHOLD = 90     # If face is smaller than this, apply sharpening
-
-# Advanced Image Processing
-USE_CLAHE = True           # Use Contrast Limited Adaptive Histogram Equalization (Better than standard HE)

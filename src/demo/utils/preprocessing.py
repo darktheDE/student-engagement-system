@@ -13,8 +13,6 @@ parent_dir = os.path.dirname(os.path.dirname(os.path.dirname(current_dir)))
 if parent_dir not in sys.path:
     sys.path.append(parent_dir)
 
-from src.demo.config import USE_CLAHE
-
 def preprocess_image(face_img, target_size=128):
     """
     Base preprocessing pipeline optimized with OpenCV.
@@ -33,15 +31,8 @@ def preprocess_image(face_img, target_size=128):
     # 2. Gaussian Blur (match training: size=5, sigma=1.0)
     blurred = cv2.GaussianBlur(gray, (5, 5), 1.0)
     
-    # 3. Histogram Equalization (Standard or CLAHE)
-    if USE_CLAHE:
-        # CLAHE (Contrast Limited Adaptive Histogram Equalization)
-        # clipLimit=2.0, tileGridSize=(8,8) are standard values for faces
-        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-        equalized = clahe.apply(blurred)
-    else:
-        # Standard Global Histogram Equalization
-        equalized = cv2.equalizeHist(blurred)
+    # 3. Histogram Equalization
+    equalized = cv2.equalizeHist(blurred)
     
     # 4. Resize (match training: manual resizing implied Nearest Neighbor)
     resized = cv2.resize(equalized, (target_size, target_size), interpolation=cv2.INTER_NEAREST)
