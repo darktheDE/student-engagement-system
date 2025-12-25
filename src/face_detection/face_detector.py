@@ -87,9 +87,7 @@ class FaceDetector:
             img_w = gray_image.shape[1]
             right_profiles = [(img_w - x - w, y, w, h) for x, y, w, h in right_profiles]
             all_faces = list(faces) + list(left_profiles) + list(right_profiles)
-            
-            # Apply NMS to merge overlapping boxes (e.g. Profile + Frontal)
-            faces = np.array(non_max_suppression(all_faces, iou_threshold=0.3)) if all_faces else np.array([])
+            faces = np.array(all_faces) if all_faces else np.array([])
         return faces
 
     def _detect_faces_dnn(self, image):

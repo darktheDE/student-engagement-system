@@ -6,8 +6,7 @@ import time
 import numpy as np
 from collections import deque, Counter
 from src.demo.config import (WEBCAM_WIDTH, WEBCAM_HEIGHT, FRAME_SKIP, HISTORY_LEN,
-                      LIGHT_TOO_DARK, LIGHT_TOO_BRIGHT, PREDICTION_SMOOTHING_WINDOW,
-                      FAST_RESPONSE_CLASSES, MIN_FACE_SIZE, SHARPEN_THRESHOLD)
+                      LIGHT_TOO_DARK, LIGHT_TOO_BRIGHT, PREDICTION_SMOOTHING_WINDOW)
 
 
 class VideoProcessor:
@@ -25,6 +24,7 @@ class VideoProcessor:
         self.frame_count = 0
         self.current_frame = None
         self.current_faces = []
+        self.brightness_adjust = 0
         self.brightness_adjust = 0
         
         # FPS tracking
@@ -101,8 +101,9 @@ class VideoProcessor:
         # Flip horizontally for mirror effect
         frame = cv2.flip(frame, 1)
         
-        # Apply automatic brightness adjustment
-        frame = self._auto_adjust_brightness(frame)
+        # Apply manual brightness adjustment
+        if self.brightness_adjust != 0:
+            frame = cv2.convertScaleAbs(frame, alpha=1, beta=self.brightness_adjust)
         
         self.current_frame = frame.copy()
         self.frame_count += 1
@@ -159,16 +160,6 @@ class VideoProcessor:
             roi = self.detector.extract_roi(frame, face_rect, padding=0, adaptive_padding=True)
             if roi.size == 0:
                 return None
-            
-            # Distance Optimization: Sharpen small faces (Low Res)
-            h, w = roi.shape[:2]
-            if max(h, w) < SHARPEN_THRESHOLD:
-                # Create sharpening kernel
-                kernel = np.array([[0, -1, 0], 
-                                 [-1, 5,-1], 
-                                 [0, -1, 0]])
-                roi = cv2.filter2D(roi, -1, kernel)
-                
             return roi
         except Exception as e:
             print(f"Error extracting ROI: {e}")
@@ -263,51 +254,20 @@ class VideoProcessor:
         if model_id not in self.smooth_buffer or len(self.smooth_buffer[model_id]) == 0:
             return self.predictions.get(model_id, None)
             
-        buffer = list(self.smooth_buffer[model_id])
-        
-        # Priority Override: Check if recent frames match a Fast Response Class
-        # If the last 2 frames are "Looking Away" (or other fast class), trigger immediately
-        if len(buffer) >= 2:
-            last_two = buffer[-2:]
-            if last_two[0] == last_two[1] and last_two[0] in FAST_RESPONSE_CLASSES:
-                return last_two[0]
-            
         # Standard Majority voting
         votes = Counter(self.smooth_buffer[model_id])
         smoothed_pred = votes.most_common(1)[0][0]
         return smoothed_pred
     
-    def _auto_adjust_brightness(self, frame, target_brightness=127):
+    def set_brightness(self, value):
         """
-        Automatically adjust brightness to target mean value
+        Set brightness adjustment value
         
         Args:
-            frame: Input frame (BGR)
-            target_brightness: Target mean brightness (0-255)
-            
-        Returns:
-            numpy.ndarray: Brightness corrected frame
+            value: Brightness adjustment (-50 to +50)
         """
-        if frame is None:
-            return None
-            
-        # Convert to HSV to check brightness (Value channel)
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        v = hsv[:, :, 2]
-        mean_brightness = np.mean(v)
-        
-        # Calculate beta correction
-        beta = target_brightness - mean_brightness
-        
-        # Clamp beta to avoid extreme washing out
-        beta = np.clip(beta, -60, 60)
-        
-        # Apply correction if significant
-        if abs(beta) > 5:
-            frame = cv2.convertScaleAbs(frame, alpha=1, beta=beta)
-            
-        return frame
-
+        self.brightness_adjust = value
+    
     def release(self):
         """Release camera resources"""
         if self.cap:

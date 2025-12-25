@@ -25,8 +25,7 @@ from src.demo.utils.preprocessing import preprocess_image
 from src.demo.core import ModelManager, Predictor, VideoProcessor
 from src.demo.config import (DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_WIDTH_SPLIT, 
                       DISPLAY_HEIGHT_SPLIT, FACE_DETECTION_SCALE_FACTOR,
-                      FACE_DETECTION_MIN_NEIGHBORS, LABEL_MAP, COLOR_BACKGROUND,
-                      MIN_FACE_SIZE)
+                      FACE_DETECTION_MIN_NEIGHBORS, LABEL_MAP, COLOR_BACKGROUND)
 from src.demo.utils import (calculate_engagement_rate, calculate_state_breakdown,
                          calculate_agreement_rate, calculate_confidence,
                          map_prediction_to_binary)
@@ -130,8 +129,7 @@ class EngagementApp:
             self.detector = FaceDetector(
                 use_dnn=False,
                 scale_factor=FACE_DETECTION_SCALE_FACTOR,
-                min_neighbors=FACE_DETECTION_MIN_NEIGHBORS,
-                min_size=(MIN_FACE_SIZE, MIN_FACE_SIZE)
+                min_neighbors=FACE_DETECTION_MIN_NEIGHBORS
             )
             self.log("✓ Face Detector initialized")
             
@@ -167,6 +165,10 @@ class EngagementApp:
         frame = self.video_processor.read_frame()
         
         if frame is not None:
+            # Apply brightness adjustment from UI (Tkinter access on main thread)
+            brightness = self.sidebar.brightness_adjust.get()
+            self.video_processor.set_brightness(brightness)
+            
             # Check async processing status
             if self.future and self.future.done():
                 try:

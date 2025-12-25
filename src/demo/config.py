@@ -23,7 +23,6 @@ DISPLAY_HEIGHT_SPLIT = 480  # For comparison mode - 1:1 ratio
 FRAME_SKIP = 2  # Process every Nth frame for performance
 HISTORY_LEN = 100  # Number of predictions to keep in history
 PREDICTION_SMOOTHING_WINDOW = 5  # Number of frames for majority voting (smoothing)
-FAST_RESPONSE_CLASSES = [0]  # Classes to trigger immediately (e.g., Looking Away)
 
 # Image Processing
 TARGET_SIZE = 128  # Size for preprocessing face ROIs
@@ -88,7 +87,4 @@ COLOR_BLACK = "black"
 
 # Face Detection Settings
 FACE_DETECTION_SCALE_FACTOR = 1.3
-FACE_DETECTION_SCALE_FACTOR = 1.3
 FACE_DETECTION_MIN_NEIGHBORS = 4
-MIN_FACE_SIZE = 60         # Minimum face size (pixels) to even attempt processing
-SHARPEN_THRESHOLD = 90     # If face is smaller than this, apply sharpening
