@@ -22,6 +22,8 @@ DISPLAY_WIDTH_SPLIT = 480  # For comparison mode - 1:1 ratio
 DISPLAY_HEIGHT_SPLIT = 480  # For comparison mode - 1:1 ratio
 FRAME_SKIP = 2  # Process every Nth frame for performance
 HISTORY_LEN = 100  # Number of predictions to keep in history
+PREDICTION_SMOOTHING_WINDOW = 5  # Number of frames for majority voting (smoothing)
+FAST_RESPONSE_CLASSES = [0]  # Classes to trigger immediately (e.g., Looking Away)
 
 # Image Processing
 TARGET_SIZE = 128  # Size for preprocessing face ROIs
@@ -30,25 +32,25 @@ TARGET_SIZE = 128  # Size for preprocessing face ROIs
 LIGHT_TOO_DARK = 70   # Below this = too dark
 LIGHT_TOO_BRIGHT = 200  # Above this = too bright
 
-# Label Mapping based on alphabetic order of keys in ENGAGEMENT_STATES
-# 0: bored, 1: confused, 2: drowsy, 3: engaged, 4: frustrated, 5: looking away
+# Label Mapping based on alphabetic order (Case Sensitive: L comes before b)
+# 0: Looking Away, 1: bored, 2: confused, 3: drowsy, 4: engaged, 5: frustrated
 LABEL_MAP = {
-    0: "Bored",
-    1: "Confused",
-    2: "Drowsy",
-    3: "Engaged",
-    4: "Frustrated",
-    5: "Looking Away"
+    0: "Looking Away",
+    1: "Bored",
+    2: "Confused",
+    3: "Drowsy",
+    4: "Engaged",
+    5: "Frustrated"
 }
 
 # Binary Group Mapping (1 = Engaged/Positive, 0 = Not Engaged/Negative)
 BINARY_MAP = {
-    0: 0,  # Bored -> Not Engaged
-    1: 1,  # Confused -> Engaged (Active thinking)
-    2: 0,  # Drowsy -> Not Engaged
-    3: 1,  # Engaged -> Engaged
-    4: 1,  # Frustrated -> Engaged (High arousal)
-    5: 0   # Looking Away -> Not Engaged
+    0: 0,  # Looking Away -> Not Engaged
+    1: 0,  # Bored -> Not Engaged
+    2: 1,  # Confused -> Engaged (Active thinking)
+    3: 0,  # Drowsy -> Not Engaged
+    4: 1,  # Engaged -> Engaged
+    5: 1   # Frustrated -> Engaged (High arousal)
 }
 
 # Model Configurations
@@ -85,5 +87,11 @@ COLOR_WHITE = "white"
 COLOR_BLACK = "black"
 
 # Face Detection Settings
+# Face Detection Settings
 FACE_DETECTION_SCALE_FACTOR = 1.3
 FACE_DETECTION_MIN_NEIGHBORS = 4
+MIN_FACE_SIZE = 60         # Minimum face size (pixels) to even attempt processing
+SHARPEN_THRESHOLD = 90     # If face is smaller than this, apply sharpening
+
+# Advanced Image Processing
+USE_CLAHE = True           # Use Contrast Limited Adaptive Histogram Equalization (Better than standard HE)

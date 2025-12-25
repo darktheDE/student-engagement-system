@@ -4,9 +4,10 @@ Video Processor - Handles camera and video frame processing
 import cv2
 import time
 import numpy as np
-from collections import deque
+from collections import deque, Counter
 from src.demo.config import (WEBCAM_WIDTH, WEBCAM_HEIGHT, FRAME_SKIP, HISTORY_LEN,
-                      LIGHT_TOO_DARK, LIGHT_TOO_BRIGHT)
+                      LIGHT_TOO_DARK, LIGHT_TOO_BRIGHT, PREDICTION_SMOOTHING_WINDOW,
+                      FAST_RESPONSE_CLASSES, MIN_FACE_SIZE, SHARPEN_THRESHOLD)
 
 
 class VideoProcessor:
@@ -39,6 +40,9 @@ class VideoProcessor:
         
         # Predictions storage
         self.predictions = {}
+        
+        # Smoothing Buffer (Stores last N raw predictions)
+        self.smooth_buffer = {}
     
     def initialize_camera(self):
         """
@@ -77,6 +81,8 @@ class VideoProcessor:
                 'binary': deque(maxlen=HISTORY_LEN),
                 'raw': deque(maxlen=HISTORY_LEN)
             }
+            # Initialize smoothing buffer for this model
+            self.smooth_buffer[model_id] = deque(maxlen=PREDICTION_SMOOTHING_WINDOW)
     
     def read_frame(self):
         """
@@ -95,9 +101,8 @@ class VideoProcessor:
         # Flip horizontally for mirror effect
         frame = cv2.flip(frame, 1)
         
-        # Apply brightness adjustment
-        if self.brightness_adjust != 0:
-            frame = cv2.convertScaleAbs(frame, alpha=1, beta=self.brightness_adjust)
+        # Apply automatic brightness adjustment
+        frame = self._auto_adjust_brightness(frame)
         
         self.current_frame = frame.copy()
         self.frame_count += 1
@@ -150,9 +155,20 @@ class VideoProcessor:
             numpy.ndarray: Face ROI or None if error
         """
         try:
-            roi = self.detector.extract_roi(frame, face_rect, adaptive_padding=True)
+            # Use adaptive padding (8%) to be robust to webcam resolution differences
+            roi = self.detector.extract_roi(frame, face_rect, padding=0, adaptive_padding=True)
             if roi.size == 0:
                 return None
+            
+            # Distance Optimization: Sharpen small faces (Low Res)
+            h, w = roi.shape[:2]
+            if max(h, w) < SHARPEN_THRESHOLD:
+                # Create sharpening kernel
+                kernel = np.array([[0, -1, 0], 
+                                 [-1, 5,-1], 
+                                 [0, -1, 0]])
+                roi = cv2.filter2D(roi, -1, kernel)
+                
             return roi
         except Exception as e:
             print(f"Error extracting ROI: {e}")
@@ -205,30 +221,93 @@ class VideoProcessor:
         """Get current FPS value"""
         return self.fps_val
     
-    def update_prediction(self, model_id, prediction, binary_value):
+    def update_with_smoothing(self, model_id, raw_prediction, map_binary_func):
         """
-        Update prediction and history for a model
+        Update prediction, smoothing buffer, and history
         
         Args:
             model_id: Model identifier
-            prediction: Raw prediction value
-            binary_value: Binary engagement value (0 or 1)
+            raw_prediction: Raw instantaneous prediction
+            map_binary_func: Function to map prediction to binary value
         """
-        self.predictions[model_id] = prediction
+        # 1. Add raw prediction to smoothing buffer
+        if model_id in self.smooth_buffer:
+            self.smooth_buffer[model_id].append(raw_prediction)
+            
+        # 2. Get smoothed result (Voting)
+        smoothed_pred = self.get_smoothed_prediction(model_id)
+        if smoothed_pred is None:
+            smoothed_pred = raw_prediction
+            
+        # 3. Calculate binary value based on SMOOTHED result
+        binary_value = map_binary_func(smoothed_pred)
         
+        # 4. Update current prediction (for UI)
+        self.predictions[model_id] = smoothed_pred
+        
+        # 5. Update History (for Metrics) with SMOOTHED data
         if model_id in self.history:
-            self.history[model_id]['raw'].append(prediction)
+            self.history[model_id]['raw'].append(smoothed_pred)
             self.history[model_id]['binary'].append(binary_value)
     
-    def set_brightness(self, value):
+    def get_smoothed_prediction(self, model_id):
         """
-        Set brightness adjustment value
+        Get smoothed prediction using majority voting from buffer
         
         Args:
-            value: Brightness adjustment (-50 to +50)
+            model_id: Model identifier
+            
+        Returns:
+            int: Smoothed prediction class or current prediction if buffer empty
         """
-        self.brightness_adjust = value
+        if model_id not in self.smooth_buffer or len(self.smooth_buffer[model_id]) == 0:
+            return self.predictions.get(model_id, None)
+            
+        buffer = list(self.smooth_buffer[model_id])
+        
+        # Priority Override: Check if recent frames match a Fast Response Class
+        # If the last 2 frames are "Looking Away" (or other fast class), trigger immediately
+        if len(buffer) >= 2:
+            last_two = buffer[-2:]
+            if last_two[0] == last_two[1] and last_two[0] in FAST_RESPONSE_CLASSES:
+                return last_two[0]
+            
+        # Standard Majority voting
+        votes = Counter(self.smooth_buffer[model_id])
+        smoothed_pred = votes.most_common(1)[0][0]
+        return smoothed_pred
     
+    def _auto_adjust_brightness(self, frame, target_brightness=127):
+        """
+        Automatically adjust brightness to target mean value
+        
+        Args:
+            frame: Input frame (BGR)
+            target_brightness: Target mean brightness (0-255)
+            
+        Returns:
+            numpy.ndarray: Brightness corrected frame
+        """
+        if frame is None:
+            return None
+            
+        # Convert to HSV to check brightness (Value channel)
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        v = hsv[:, :, 2]
+        mean_brightness = np.mean(v)
+        
+        # Calculate beta correction
+        beta = target_brightness - mean_brightness
+        
+        # Clamp beta to avoid extreme washing out
+        beta = np.clip(beta, -60, 60)
+        
+        # Apply correction if significant
+        if abs(beta) > 5:
+            frame = cv2.convertScaleAbs(frame, alpha=1, beta=beta)
+            
+        return frame
+
     def release(self):
         """Release camera resources"""
         if self.cap:

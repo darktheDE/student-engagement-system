@@ -4,6 +4,7 @@ Coordinates all components and manages application lifecycle
 """
 import tkinter as tk
 import threading
+from concurrent.futures import ThreadPoolExecutor
 import time
 import cv2
 import sys
@@ -19,17 +20,18 @@ if project_root not in sys.path:
     sys.path.insert(0, project_root)
 
 from src.face_detection.face_detector import FaceDetector
-from src.data_processing.dataset_cleaner import preprocess_roi
+from src.demo.utils.preprocessing import preprocess_image
 
 from src.demo.core import ModelManager, Predictor, VideoProcessor
 from src.demo.config import (DISPLAY_WIDTH, DISPLAY_HEIGHT, DISPLAY_WIDTH_SPLIT, 
                       DISPLAY_HEIGHT_SPLIT, FACE_DETECTION_SCALE_FACTOR,
-                      FACE_DETECTION_MIN_NEIGHBORS, LABEL_MAP, COLOR_BACKGROUND)
-from src.demo.utils_new import (calculate_engagement_rate, calculate_state_breakdown,
+                      FACE_DETECTION_MIN_NEIGHBORS, LABEL_MAP, COLOR_BACKGROUND,
+                      MIN_FACE_SIZE)
+from src.demo.utils import (calculate_engagement_rate, calculate_state_breakdown,
                          calculate_agreement_rate, calculate_confidence,
                          map_prediction_to_binary)
-from src.demo.utils_new.visualization import draw_prediction_on_frame, draw_clean_rectangle
-from src.demo.utils_new.image_utils import convert_cv2_to_tkinter
+from src.demo.utils.visualization import draw_prediction_on_frame, draw_clean_rectangle
+from src.demo.utils.image_utils import convert_cv2_to_tkinter
 
 from src.demo.ui.components import (HeaderComponent, SidebarComponent, VideoPanelComponent,
                          MetricsPanelComponent, FooterComponent)
@@ -53,6 +55,10 @@ class EngagementApp:
         # Application state
         self.running = True
         self.system_ready = False
+        
+        # Threading for performance
+        self.executor = ThreadPoolExecutor(max_workers=1)
+        self.future = None
         
         # Core components
         self.model_manager = None
@@ -124,7 +130,8 @@ class EngagementApp:
             self.detector = FaceDetector(
                 use_dnn=False,
                 scale_factor=FACE_DETECTION_SCALE_FACTOR,
-                min_neighbors=FACE_DETECTION_MIN_NEIGHBORS
+                min_neighbors=FACE_DETECTION_MIN_NEIGHBORS,
+                min_size=(MIN_FACE_SIZE, MIN_FACE_SIZE)
             )
             self.log("✓ Face Detector initialized")
             
@@ -156,19 +163,30 @@ class EngagementApp:
             self.root.after(100, self._update_loop)
             return
         
-        # Read frame
+        # Read frame (Fast)
         frame = self.video_processor.read_frame()
         
         if frame is not None:
-            # Apply brightness adjustment from UI
-            brightness = self.sidebar.brightness_adjust.get()
-            self.video_processor.set_brightness(brightness)
+            # Check async processing status
+            if self.future and self.future.done():
+                try:
+                    # Get results from background thread (updates state silently via side effects or we could return them)
+                    self.future.result() 
+                    self.future = None
+                except Exception as e:
+                    print(f"Error in background processing: {e}")
+                    self.future = None
             
-            # Process frame if needed
-            if self.video_processor.should_process_frame():
-                self._process_frame(frame)
+            # Submit new processing task if idle
+            if self.future is None and self.video_processor.should_process_frame():
+                # Gather Tkinter inputs here (Main Thread)
+                mode = self.video_panel.view_mode.get()
+                models_to_run = self._get_models_to_run(mode)
+                
+                # Submit to background thread (Do NOT pass Tkinter objects)
+                self.future = self.executor.submit(self._process_frame_async, frame.copy(), models_to_run)
             
-            # Visualize based on mode
+            # Visualize based on mode (Uses current state of video_processor)
             self._visualize_frame(frame)
             
             # Update metrics
@@ -180,8 +198,11 @@ class EngagementApp:
         # Schedule next update
         self.root.after(30, self._update_loop)
     
-    def _process_frame(self, frame):
-        """Process a frame - detect faces and make predictions"""
+    def _process_frame_async(self, frame, models_to_run):
+        """
+        Process a frame - detect faces and make predictions (Background Thread).
+        WARNING: Do NOT access Tkinter widgets here.
+        """
         # Detect faces
         faces = self.video_processor.detect_faces(frame)
         
@@ -198,12 +219,7 @@ class EngagementApp:
         if roi is None:
             return
         
-        # Determine which models to run
-        mode = self.video_panel.view_mode.get()
-        models_to_run = self._get_models_to_run(mode)
-        
         # Run predictions
-        start_time = time.time()
         for model_id in models_to_run:
             if not self.model_manager.is_model_loaded(model_id):
                 continue
@@ -213,9 +229,10 @@ class EngagementApp:
             model_time = (time.time() - model_start) * 1000
             
             if pred is not None:
-                binary_val = map_prediction_to_binary(pred)
-                self.video_processor.update_prediction(model_id, pred, binary_val)
+                # Use update_with_smoothing to handle buffer and history
+                self.video_processor.update_with_smoothing(model_id, pred, map_prediction_to_binary)
                 self.video_processor.processing_times[model_id] = model_time
+
     
     def _get_models_to_run(self, mode):
         """Determine which models to run based on view mode"""
@@ -269,7 +286,7 @@ class EngagementApp:
             try:
                 roi = self.video_processor.extract_face_roi(img, face_rect)
                 if roi is not None and roi.size > 0:
-                    roi_processed = preprocess_roi(roi, target_size=128)
+                    roi_processed = preprocess_image(roi, target_size=128)
                     x, y, w, h = face_rect
                     roi_processed_resized = cv2.resize(roi_processed, (w, h))
                     roi_bgr = cv2.cvtColor(roi_processed_resized, cv2.COLOR_GRAY2BGR)
@@ -278,8 +295,8 @@ class EngagementApp:
                 print(f"Error showing preprocessed: {e}")
         
         # Draw prediction if available
-        if model_id in self.video_processor.predictions:
-            pred = self.video_processor.predictions[model_id]
+        pred = self.video_processor.get_smoothed_prediction(model_id)
+        if pred is not None:
             img = draw_prediction_on_frame(img, face_rect, pred)
         else:
             img = draw_clean_rectangle(img, face_rect)
@@ -420,3 +437,15 @@ class EngagementApp:
         if self.video_processor:
             self.video_processor.release()
         self.root.destroy()
+
+if __name__ == "__main__":
+    try:
+        root = tk.Tk()
+        app = EngagementApp(root)
+        root.protocol("WM_DELETE_WINDOW", app.on_closing)
+        root.mainloop()
+    except Exception as e:
+        print(f"Error starting app: {e}")
+        import traceback
+        traceback.print_exc()
+        input("Press Enter to exit...")

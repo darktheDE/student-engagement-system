@@ -99,42 +99,6 @@ class SidebarComponent:
         self.lbl_faces = self._create_inline_metric(detect_frame, "Khuôn mặt:", "0")
         self.lbl_light_quality = self._create_inline_metric(detect_frame, "Ánh sáng:", "N/A")
         
-        # Brightness Control
-        brightness_frame = tk.LabelFrame(
-            scrollable_frame,
-            text="⚙️ Điều chỉnh độ sáng camera",
-            font=("Arial", 9, "bold"),
-            bg=COLOR_WHITE,
-            fg=COLOR_SECONDARY,
-            padx=10,
-            pady=8
-        )
-        brightness_frame.pack(fill=tk.X, padx=15, pady=5)
-        
-        tk.Label(brightness_frame, text="Độ sáng:", font=("Arial", 8), bg=COLOR_WHITE).pack(anchor="w")
-        
-        self.brightness_adjust = tk.IntVar(value=0)
-        brightness_slider = tk.Scale(
-            brightness_frame,
-            from_=-50,
-            to=50,
-            orient=tk.HORIZONTAL,
-            variable=self.brightness_adjust,
-            bg=COLOR_WHITE,
-            length=250,
-            showvalue=True,
-            resolution=5
-        )
-        brightness_slider.pack(fill=tk.X, pady=2)
-        
-        tk.Label(
-            brightness_frame,
-            text="(-50: tối hơn, +50: sáng hơn)",
-            font=("Arial", 7, "italic"),
-            bg=COLOR_WHITE,
-            fg=COLOR_DARK
-        ).pack()
-        
         # Divider
         tk.Frame(scrollable_frame, height=2, bg=COLOR_DIVIDER).pack(fill=tk.X, padx=20, pady=12)
         
@@ -183,7 +147,3 @@ class SidebarComponent:
     def get_metrics_container(self):
         """Get the metrics container frame"""
         return self.metrics_container
-    
-    def get_brightness_var(self):
-        """Get the brightness adjustment variable"""
-        return self.brightness_adjust

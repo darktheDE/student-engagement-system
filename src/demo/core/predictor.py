@@ -2,7 +2,7 @@
 Predictor - Handles prediction logic for all models
 """
 import numpy as np
-from src.demo.utils_new.preprocessing import preprocess_for_cnn
+from src.demo.utils.preprocessing import preprocess_for_cnn
 from src.demo.hog_utils import extract_hog_features
 
 
